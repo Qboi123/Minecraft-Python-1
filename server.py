@@ -248,7 +248,7 @@ if __name__ == '__main__':
 
     load_modules(server=True)
 
-    server, server_thread = start_server()
+    server, server_thread = start_server(internal=True)
     print('Server loop running in thread: ' + server_thread.name)
 
     ip, port = server.server_address
