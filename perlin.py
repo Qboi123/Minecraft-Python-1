@@ -129,7 +129,7 @@ class BaseNoise(object):
         """
         if period is not None:
             self.period = period
-        perm = range(self.period)
+        perm = list(range(self.period))
         perm_right = self.period - 1
         for i in list(perm):
             j = randint(0, perm_right)

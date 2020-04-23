@@ -45,7 +45,7 @@ class Trunk(object):
     @classmethod
     def add_to_world(cls, world, position, sync=False):
         trunk = cls(position)
-        for item in trunk.blocks.items():
+        for item in list(trunk.blocks.items()):
             world.add_block(*item, sync=sync)
 
 
@@ -60,7 +60,7 @@ class Tree(object):
         trunk = Trunk(position, block=cls.trunk_block,
                       height_range=cls.trunk_height_range)
 
-        for item in trunk.blocks.items():
+        for item in list(trunk.blocks.items()):
             world.add_block(*item, force=False, sync=sync)
 
         x, y, z = position
@@ -68,7 +68,7 @@ class Tree(object):
         treetop = y + height
 
         # Leaves generation
-        d = height / 3 + 1
+        d = int(height / 3 + 1)
         for xl in range(x - d, x + d):
             dx = abs(xl - x)
             for yl in range(treetop - d, treetop + d):
@@ -78,8 +78,7 @@ class Tree(object):
                         continue
                     # Avoids orphaned leaves
                     if not world.has_neighbors((xl, yl, zl),
-                                               set((cls.trunk_block,
-                                                    cls.leaf_block))):
+                                               {cls.trunk_block, cls.leaf_block}):
                         continue
                     dz = abs(zl - z)
                     # The farther we are (horizontally) from the trunk,
@@ -218,39 +217,14 @@ class BirchTree(Tree):
     trunk_height_range = 5, 7
 
 
-SMALL_PLANTS = set((
-    WaterMelon,
-    Pumpkin,
-    YFlowers,
-    Potato,
-    Carrot,
-    Rose,
-    TallGrass,
-    TallGrass0,
-    TallGrass1,
-    TallGrass2,
-    TallGrass3,
-    TallGrass4,
-    TallGrass5,
-    TallGrass6,
-    TallGrass7,
-    DeadBush,
-    DesertGrass,
-))
+SMALL_PLANTS = {WaterMelon, Pumpkin, YFlowers, Potato, Carrot, Rose, TallGrass, TallGrass0, TallGrass1, TallGrass2,
+                TallGrass3, TallGrass4, TallGrass5, TallGrass6, TallGrass7, DeadBush, DesertGrass}
 
-TALL_PLANTS = set((
-    Cactus,
-    TallCactus,
-    Reed,
-))
+TALL_PLANTS = {Cactus, TallCactus, Reed}
 
 PLANTS = SMALL_PLANTS | TALL_PLANTS
 
-TREES = set((
-    OakTree,
-    JungleTree,
-    BirchTree,
-))
+TREES = {OakTree, JungleTree, BirchTree}
 
 
 VEGETATION = PLANTS | TREES

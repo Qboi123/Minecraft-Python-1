@@ -111,7 +111,7 @@ class Player(Entity):
             self.dy = 0
             self.flying = not self.flying
 
-    def get_motion_vector(self, multiplier=1):
+    def get_motion_vector(self, multiplier=1.5):
         if any(self.strafe):
             x, y = self.rotation
             y_r = radians(y)
@@ -137,7 +137,7 @@ class Player(Entity):
             dy = 0.0
             dx = 0.0
             dz = 0.0
-        return dx*multiplier, dy*multiplier, dz*multiplier
+        return dx*multiplier, dy*multiplier, dz*multiplier  # Replace index 1 with dy*multiplier
 
     def get_sight_vector(self):
         x, y = self.rotation
@@ -208,13 +208,13 @@ class Player(Entity):
         np = normalize(position)
         self.current_density = 1 # Reset it, incase we don't hit any water
         for face in FACES:  # check all surrounding blocks
-            for i in xrange(3):  # check each dimension independently
+            for i in range(3):  # check each dimension independently
                 if not face[i]:
                     continue
                 d = (p[i] - np[i]) * face[i]
                 if d < pad:
                     continue
-                for dy in xrange(height):  # check each height
+                for dy in range(height):  # check each height
                     op = list(np)
                     op[1] -= dy
                     op[i] += face[i]

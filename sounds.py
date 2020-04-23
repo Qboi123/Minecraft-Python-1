@@ -33,7 +33,7 @@ sand_break = pyglet.resource.media("sand_break.wav", streaming=False)
 
 
 def play_sound(sound, player=None, position=None): 
-    sound_player = pyglet.media.ManagedSoundPlayer()
+    sound_player = pyglet.media.Player()
 
     #Makes sure we don't set properties for objects that aren't instantiated
     try:

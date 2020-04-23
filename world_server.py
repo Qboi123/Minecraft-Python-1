@@ -44,11 +44,11 @@ class WorldServer(dict):
         self.db = savingsystem.connect_db(G.SAVE_FILENAME)
 
         if os.path.exists(os.path.join(G.game_dir, G.SAVE_FILENAME, "seed")):
-            with open(os.path.join(G.game_dir, G.SAVE_FILENAME, "seed"), "rb") as f:
+            with open(os.path.join(G.game_dir, G.SAVE_FILENAME, "seed"), "r") as f:
                 G.SEED = f.read()
         else:
             if not os.path.exists(os.path.join(G.game_dir, G.SAVE_FILENAME)): os.makedirs(os.path.join(G.game_dir, G.SAVE_FILENAME))
-            with open(os.path.join(G.game_dir, G.SAVE_FILENAME, "seed"), "wb") as f:
+            with open(os.path.join(G.game_dir, G.SAVE_FILENAME, "seed"), "w") as f:
                 f.write(self.generate_seed())
 
         self.terraingen = terrain.TerrainGeneratorSimple(self, G.SEED)
@@ -58,7 +58,12 @@ class WorldServer(dict):
         super(WorldServer, self).__del__()
 
     def __delitem__(self, position):
-        super(WorldServer, self).__delitem__(position)
+        # print(self)
+        # os.kill(os.getpid(), -1)
+        try:
+            super(WorldServer, self).__delitem__(position)
+        except KeyError:
+            return
 
         if position in self.spreading_mutable_blocks:
             try:
@@ -107,11 +112,11 @@ class WorldServer(dict):
             self.check_neighbors(position)
 
     def is_exposed(self, position):
-        x, y, z = position
-        for fx,fy,fz in FACES:
-            other_position = (fx+x, fy+y, fz+z)
-            if other_position not in self or self[other_position].transparent:
-                return True
+        # x, y, z = position
+        # for fx,fy,fz in FACES:
+        #     other_position = (fx+x, fy+y, fz+z)
+        #     if other_position not in self or self[other_position].transparent:
+        #         return True
         return False
 
     def get_exposed_sector_cached(self, sector):
@@ -123,7 +128,7 @@ class WorldServer(dict):
         cx,cy,cz = sector_to_blockpos(sector)
         #Most ridiculous list comprehension ever, but this is 25% faster than using appends
         self.exposed_cache[sector] = "".join([(x,y,z) in self and self.is_exposed((x,y,z)) and "1" or "0"
-            for x in xrange(cx, cx+8) for y in xrange(cy, cy+8) for z in xrange(cz, cz+8)])
+            for x in range(cx, cx+8) for y in range(cy, cy+8) for z in range(cz, cz+8)])
         return self.exposed_cache[sector]
 
     def get_exposed_sector(self, sector):
@@ -131,7 +136,7 @@ class WorldServer(dict):
         cx,cy,cz = sector_to_blockpos(sector)
         #Most ridiculous list comprehension ever, but this is 25% faster than using appends
         return "".join([(x,y,z) in self and self.is_exposed((x,y,z)) and "1" or "0"
-                        for x in xrange(cx, cx+8) for y in xrange(cy, cy+8) for z in xrange(cz, cz+8)])
+                        for x in range(cx, cx+8) for y in range(cy, cy+8) for z in range(cz, cz+8)])
 
     def neighbors_iterator(self, position, relative_neighbors_positions=FACES):
         x, y, z = position
@@ -175,13 +180,13 @@ class WorldServer(dict):
         if seed is None:
             # Generates pseudo-random number.
             try:
-                seed = long(hexlify(os.urandom(16)), 16)
+                seed = int(hexlify(os.urandom(16)), 16)
             except NotImplementedError:
-                seed = long(time.time() * 256)  # use fractional seconds
+                seed = int(time.time() * 256)  # use fractional seconds
                 # Then convert it to a string so all seeds have the same type.
             seed = str(seed)
 
-            print('No seed set, generated random seed: ' + seed)
+            print(('No seed set, generated random seed: ' + seed))
         G.SEED = seed
 
         with open(os.path.join(G.game_dir, 'seeds.txt'), 'a') as seeds:
@@ -200,8 +205,8 @@ class WorldServer(dict):
             rx, ry, rz = bx/32*32, by/32*32, bz/32*32
 
             #For ease of saving/loading, queue up generation of a whole region (4x4x4 sectors) at once
-            yiter, ziter = xrange(ry/8,ry/8+4), xrange(rz/8,rz/8+4)
-            for secx in xrange(rx/8,rx/8+4):
+            yiter, ziter = range(int(ry/8),int(ry/8+4)), range(int(rz/8),int(rz/8+4))
+            for secx in range(int(rx/8),int(rx/8+4)):
                 for secy in yiter:
                     for secz in ziter:
                         self.terraingen.generate_sector((secx,secy,secz))

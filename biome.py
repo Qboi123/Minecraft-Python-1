@@ -10,8 +10,11 @@ __all__ = ("BiomeGenerator")
 
 class BiomeGenerator(object):
     def __init__(self, seed):
-         self.temperature_gen = SimplexNoiseGen(seed + "97", zoom_level=0.01)
-         self.humidity_gen = SimplexNoiseGen(seed + "147", zoom_level=0.01)
+        # print(seed)
+        if type(seed) == str:
+            seed = seed.encode('utf-8')
+        self.temperature_gen = SimplexNoiseGen(seed + b"97", zoom_level=0.01)
+        self.humidity_gen = SimplexNoiseGen(seed + b"147", zoom_level=0.01)
         #temp_seed = int(G.SEED)
         #temp_gen = temp_seed + 97
         #temp_humid = temp_seed + 147

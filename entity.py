@@ -51,7 +51,7 @@ class Entity(object):
 #
 MSG_PICKUP, \
 MSG_REDSTONE_ACTIVATE, MSG_REDSTONE_DEACTIVATE, \
-    = range(3)
+    = list(range(3))
 
 class EntityManager(object):
     def __init__(self):

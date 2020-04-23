@@ -33,6 +33,7 @@ def image_sprite(image, batch, group, x=0, y=0, width=None, height=None):
     height = height or image.height
     if isinstance(group, int):
         group = pyglet.graphics.OrderedGroup(group)
+    # print(x, y, width, height)
     return pyglet.sprite.Sprite(image.get_region(x, y, width, height),
                                 batch=batch, group=group)
 
@@ -70,7 +71,7 @@ def init_font(filename, fontname):
 
 
 def get_block_icon(block, icon_size, world):
-    print block.id.filename()
+    print(block.id.filename())
     block_icon = G.texture_pack_list.selected_texture_pack.load_texture(block.id.filename()) \
         or (block.group or world.group).texture.get_region(
             int(block.texture_data[2 * 8] * G.TILESET_SIZE) * icon_size,
@@ -138,10 +139,12 @@ def normalize(position):
 
 
 def sectorize(position):
+    # TODO: set to integer values
+
     x, y, z = normalize(position)
-    x, y, z = (x / G.SECTOR_SIZE,
-               y / G.SECTOR_SIZE,
-               z / G.SECTOR_SIZE)
+    x, y, z = (int(x / G.SECTOR_SIZE),
+               int(y / G.SECTOR_SIZE),
+               int(z / G.SECTOR_SIZE))
     return x, y, z
 
 
@@ -167,7 +170,7 @@ def extract_int_packet(packet):
     return packet[4:], struct.unpack('i', packet[:4])[0]
 
 def make_string_packet(s):
-    return struct.pack('i', len(s)) + s
+    return struct.pack('i', len(s)) + s.encode('utf-8')
 
 def extract_string_packet(packet):
     strlen = struct.unpack('i', packet[:4])[0]
@@ -182,7 +185,7 @@ def make_packet(obj):
     elif type(obj) == str:
         return make_string_packet(obj)
     else:
-        print('make_packet: unsupported type: ' + str(type(obj)))
+        print(('make_packet: unsupported type: ' + str(type(obj))))
         return None
 
 def extract_packet(packet):
@@ -202,7 +205,7 @@ def type_tag(t):
 
 def make_nbt_from_dict(d):
     packet = ''
-    for key in d.keys():
+    for key in list(d.keys()):
         packet += make_string_packet(key) + type_tag(type(d[key])) + make_packet(d[key])
     return packet
 

@@ -9,7 +9,7 @@ import re
 import pyglet
 
 # Modules from this project
-from blocks import BlockID
+from blocks import BlockID, Block
 from items import get_item
 import globals as G
 from savingsystem import save_world
@@ -85,9 +85,9 @@ class CommandParser(object):
             # ...but filter out "None" arguments. If commands
             # want optional arguments, they should use keyword arguments
             # in their execute methods.
-            args = filter(lambda a: a is not None, match.groups())
+            args = [a for a in match.groups() if a is not None]
             kwargs = {}
-            for key, value in match.groupdict().iteritems():
+            for key, value in match.groupdict().items():
                 if value is not None:
                     kwargs[key] = value
             ret = command.execute(*args, **kwargs)
@@ -129,6 +129,31 @@ class HelpCommand(Command):
         for command_type in Command.__subclasses__():
             if hasattr(command_type, 'help_text') and command_type.help_text:
                 self.send_info(command_type.help_text)
+
+
+class SetBlockCommand(Command):
+    command = r"^setblock ([0-9]+) ([0-9]+) ([0-9]+) (\d+(?:[\.,]\d+)?)$"
+    help_text = "$$ysetblock <x> <y> <z> <block_id>$$DSets a block at x, y, z to the givem block ID."
+
+    def execute(self, x, y, z, block_id):
+        bid = BlockID(block_id)
+        try:
+            item_or_block = get_item(float("%s.%s" % (bid.main, bid.sub)))
+        except KeyError:
+            raise CommandException(self.command_text, message="ID %s unknown." % block_id)
+        except ValueError:
+            raise CommandException(self.command_text, message="ID should be a number. Amount must be an integer.")
+
+        if issubclass(type(item_or_block), Block):
+            block = item_or_block
+            try:
+                self.world.add_block((int(x), int(y), int(z)), block)
+            except ValueError:
+                raise CommandException(self.command_text, message="Invalid coordinates must be integers")
+        else:
+            raise CommandException(
+                self.command_text,
+                message="Invalid value for block, expected Block not %s" % type(item_or_block).__name__)
 
 
 class GiveBlockCommand(Command):

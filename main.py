@@ -3,25 +3,24 @@
 # Imports, sorted alphabetically.
 
 # Python packages
-from ConfigParser import NoSectionError, NoOptionError
 import argparse
-import os
-import random
-import time
 import gettext
 import sys
-
 # Third-party packages
+from importlib import reload
+
 import pyglet
+
 # Disable error checking for increased performance
 pyglet.options['debug_gl'] = False
 from pyglet.gl import *
 from pyglet.window import key
 
+from textures import *
+
 # Modules from this project
 from controllers import MainMenuController
 import globals as G
-from timer import Timer
 from debug import log_info
 from mod import load_modules
 from savingsystem import save_world
@@ -93,7 +92,7 @@ class Window(pyglet.window.Window):
     def on_resize(self, width, height):
         if self.reticle:
             self.reticle.delete()
-        x, y = width / 2, height / 2
+        x, y = int(width / 2), int(height / 2)
         n = 10
         self.reticle = pyglet.graphics.vertex_list(
             4,
@@ -117,8 +116,7 @@ def main(options):
 
     if G.LANGUAGE != 'default':
         reload(sys)
-        sys.setdefaultencoding('utf8')
-        gettext.install(True, localedir=None, unicode=1)
+        gettext.install(True, localedir=None)
         gettext.find(G.APP_NAME.lower(), 'locale')
         gettext.textdomain(G.APP_NAME.lower())
         gettext.bind_textdomain_codeset(G.APP_NAME.lower(), 'utf8')
@@ -138,9 +136,9 @@ def main(options):
         G.CLIENT.stop()
         
     if G.SERVER:
-        print 'Saving...'
+        print('Saving...')
         save_world(G.SERVER, "world")
-        print 'Shutting down internal server...'
+        print('Shutting down internal server...')
         G.main_timer.stop()
         G.SERVER._stop.set()
         G.SERVER.shutdown()

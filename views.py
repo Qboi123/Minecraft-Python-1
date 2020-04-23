@@ -241,7 +241,7 @@ class MainMenuView(MenuView):
 
         self.label = Label(G.APP_NAME, font_name='ChunkFive Roman', font_size=50, x=width/2, y=self.frame.y + self.frame.height,
             anchor_x='center', anchor_y='top', color=(255, 255, 255, 255), batch=self.batch,
-            group=self.labels_group)
+            group=self.labels_group, width=width, height=height)
         self.label.height = self.label.content_height
         self.layout.add(self.label)
 
@@ -323,8 +323,8 @@ class MainMenuView(MenuView):
             elif i == 5:
                 glRotatef(-90.0, 1.0, 0.0, 0.0)
 
-            glBindTexture(self.panorama[i].texture.target, self.panorama[i].texture.id)
-            glEnable(self.panorama[i].texture.target)
+            glBindTexture(self.panorama[i].get_texture().target, self.panorama[i].get_texture().id)
+            glEnable(self.panorama[i].get_texture().target)
             vert_list = [-1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0]
             uv_list = [0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0]
             l = pyglet.graphics.vertex_list(4,
@@ -332,7 +332,7 @@ class MainMenuView(MenuView):
                 ('t2f/static', uv_list),
             )
             l.draw(GL_QUADS)
-            glDisable(self.panorama[i].texture.target)
+            glDisable(self.panorama[i].get_texture().target)
             glPopMatrix()
 
         glPopMatrix()
@@ -446,7 +446,7 @@ class OptionsView(MenuView):
         hl.add(sb)
 
         def change_sound_volume(pos):
-            print G.EFFECT_VOLUME
+            print(G.EFFECT_VOLUME)
             G.EFFECT_VOLUME = float(float(pos) / 100)
         sb = self.Scrollbar(x=0, y=0, width=300, height=40, sb_width=20, sb_height=40, caption="Sound", pos=int(G.EFFECT_VOLUME * 100), on_pos_change=change_sound_volume)
         hl.add(sb)
@@ -566,7 +566,7 @@ class TexturesView(MenuView):
                 self.current_toggled = button
                 G.config.set("Graphics", "texture_pack", button.id)
                 G.TEXTURE_PACK = button.id
-                for block in G.BLOCKS_DIR.values():
+                for block in list(G.BLOCKS_DIR.values()):
                     block.update_texture() #Reload textures
 
                 G.save_config()

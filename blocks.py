@@ -3,25 +3,24 @@
 # Imports, sorted alphabetically.
 
 # Future imports
-from __future__ import unicode_literals
-from math import floor
+from typing import Union, Tuple
 
-# Python packages
-# Nothing for now...
-import struct   # for update_tile_entity
+from math import floor
+from random import randint
 
 # Third-party packages
-import pyglet
+from past.builtins import cmp
 from pyglet.gl import *
 from pyglet.image.atlas import TextureAtlas
-from utils import load_image, make_nbt_from_dict, extract_nbt
 
 # Modules from this project
 import globals as G
-from random import randint
 import sounds
 from entity import CropEntity, FurnaceEntity
-from textures import TexturePackList
+from utils import make_nbt_from_dict, extract_nbt
+
+# Python packages
+# Nothing for now...
 
 BLOCK_TEXTURE_DIR = {}
 
@@ -121,7 +120,7 @@ class BlockID(object):
     def __init__(self, main, sub=0, icon_name=None):
         if isinstance(main, tuple):
             self.main, self.sub = main
-        elif isinstance(main, basestring):
+        elif isinstance(main, str):
             # Allow "35", "35.0", or "35,0"
             spl = main.split(".") if "." in main else main.split(",") if "," in main else (main, 0)
             if len(spl) == 2:
@@ -158,9 +157,51 @@ class BlockID(object):
         if isinstance(other, BlockID):
             return cmp(self.main, other.main) or cmp(self.sub, other.sub)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Checks whether it is an AirBlock."""
         return self.main != 0
+
+    def __eq__(self, other: Union['BlockID', Tuple[int, int], int]):
+        if type(other) == tuple:
+            return (self.main == other[0]) and (self.sub == other[1])
+        elif type(other) == int:
+            return self.main == other
+        return (self.main == other.main) and (self.sub == other.sub)
+    
+    def __le__(self, other: Union['BlockID', Tuple[int, int], int]):
+        if type(other) == tuple:
+            return (self.main <= other[0]) and (self.sub <= other[1])
+        elif type(other) == int:
+            return self.main <= other
+        return (self.main <= other.main) and (self.sub <= other.sub)
+
+    def __lt__(self, other: Union['BlockID', Tuple[int, int], int]):
+        if type(other) == tuple:
+            return (self.main < other[0]) and (self.sub < other[1])
+        elif type(other) == int:
+            return self.main < other
+        return (self.main < other.main) and (self.sub < other.sub)
+
+    def __ge__(self, other: Union['BlockID', Tuple[int, int], int]):
+        if type(other) == tuple:
+            return (self.main >= other[0]) and (self.sub >= other[1])
+        elif type(other) == int:
+            return self.main >= other
+        return (self.main >= other.main) and (self.sub >= other.sub)
+
+    def __gt__(self, other: Union['BlockID', Tuple[int, int], int]):
+        if type(other) == tuple:
+            return (self.main > other[0]) and (self.sub > other[1])
+        elif type(other) == int:
+            return self.main > other
+        return (self.main > other.main) and (self.sub > other.sub)
+
+    def __ne__(self, other: Union['BlockID', Tuple[int, int], int]):
+        if type(other) == tuple:
+            return (self.main != other[0]) and (self.sub != other[1])
+        elif type(other) == int:
+            return self.main != other
+        return (self.main != other.main) and (self.sub != other.sub)
 
     def is_item(self):
         return self.main > 255
@@ -361,6 +402,7 @@ class Block(object):
     def can_place_on(self, block_id):
         return False
 
+
 class BlockColorizer(object):
         def __init__(self, filename):
             self.color_data = G.texture_pack_list.selected_texture_pack.load_texture(['misc', filename])
@@ -378,7 +420,8 @@ class BlockColorizer(object):
             if self.color_data is None:
                 return 1, 1, 1
             pos = int(floor(humidity * 255) * BYTE_PER_LINE + 3 * floor((temperature) * 255))
-            return float(ord(self.color_data[pos])) / 255, float(ord(self.color_data[pos + 1])) / 255, float(ord(self.color_data[pos + 2])) / 255
+            return float(self.color_data[pos]) / 255, float(self.color_data[pos + 1]) / 255, float(self.color_data[pos + 2]) / 255
+
 
 class AirBlock(Block):
     max_stack_size = 0
@@ -1717,7 +1760,7 @@ class BedBlock(Block):
         return (block_id != 0)
 
     def set_metadata(self, metadata):
-        print 'metadata: ', metadata
+        print('metadata: ', metadata)
         if self.sub_id_as_metadata:
             self.id.sub = metadata
 

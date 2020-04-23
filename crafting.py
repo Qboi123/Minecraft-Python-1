@@ -118,7 +118,7 @@ class Recipes(object):
 
     def dump(self):
         for recipe in self.recipes:
-            print recipe
+            print(recipe)
 
 class SmeltingRecipe(object):
     def __init__(self, ingre, output):

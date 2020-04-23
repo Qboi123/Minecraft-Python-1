@@ -1,4 +1,3 @@
-import globals as G
 from blocks import *
 from items import *
 

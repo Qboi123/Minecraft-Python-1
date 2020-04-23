@@ -5,7 +5,7 @@ import socket
 import time
 import datetime
 from functools import partial
-from itertools import imap
+
 from math import cos, sin, pi, fmod
 import operator
 import os
@@ -148,10 +148,10 @@ class GameController(Controller):
     def update_player(self, dt):
         m = 8
         df = min(dt, 0.2)
-        for _ in xrange(m):
+        for _ in range(m):
             self.player.update(df / m, self)
-        for ply in self.player_ids.itervalues():
-            for _ in xrange(m):
+        for ply in self.player_ids.values():
+            for _ in range(m):
                 ply.update(df / m, self)
         momentum = self.player.get_motion_vector(15 if self.player.flying else 5*self.player.current_density)
         if momentum != self.player.momentum_previous:
@@ -224,18 +224,18 @@ class GameController(Controller):
     def setup(self):
         if G.SINGLEPLAYER:
             try:
-                print 'Starting internal server...'
+                print('Starting internal server...')
                 # TODO: create world menu
                 G.SAVE_FILENAME = "world"
                 start_server(internal=True)
                 sock = socket.socket()
                 sock.connect(("localhost", 1486))
             except socket.error as e:
-                print "Socket Error:", e
+                print("Socket Error:", e)
                 #Otherwise back to the main menu we go
                 return False
             except Exception as e:
-                print 'Unable to start internal server'
+                print('Unable to start internal server')
                 import traceback
                 traceback.print_exc()
                 return False
@@ -247,7 +247,7 @@ class GameController(Controller):
                 sock = socket.socket()
                 sock.connect((tuple(ipport)))
             except socket.error as e:
-                print "Socket Error:", e
+                print("Socket Error:", e)
                 #Otherwise back to the main menu we go
                 return False
 
@@ -262,7 +262,7 @@ class GameController(Controller):
         #else:
         #    default_skybox = 'skybox.jpg'
 
-        print 'loading ' + default_skybox
+        print('loading ' + default_skybox)
 
         self.skydome = Skydome(
             'resources/' + default_skybox,
@@ -298,7 +298,7 @@ class GameController(Controller):
         #We'll re-enable it when the server tells us where we should be
 
         self.player = Player(game_mode=G.GAME_MODE)
-        print('Game mode: ' + self.player.game_mode)
+        print(('Game mode: ' + self.player.game_mode))
         self.item_list = ItemSelector(self, self.player, self.world)
         self.inventory_list = InventorySelector(self, self.player, self.world)
         self.item_list.on_resize(self.window.width, self.window.height)
@@ -311,7 +311,7 @@ class GameController(Controller):
         self.text_input.push_handlers(on_toggled=self.on_text_input_toggled, key_released=self.text_input_callback)
         self.chat_box = TextWidget(self.window, '',
                                    0, self.text_input.y + self.text_input.height + 50,
-                                   self.window.width / 2, height=min(300, self.window.height / 3),
+                                   int(self.window.width / 2), height=min(300, int(self.window.height / 3)),
                                    visible=False, multi_line=True, readonly=True,
                                    font_name=G.CHAT_FONT,
                                    text_color=(255, 255, 255, 255),
@@ -438,7 +438,7 @@ class GameController(Controller):
                     self.item_list.update_health()
                     self.item_list.update_items()
             else:
-                localx, localy, localz = imap(operator.sub,previous,normalize(self.player.position))
+                localx, localy, localz = map(operator.sub,previous,normalize(self.player.position))
                 if localx != 0 or localz != 0 or (localy != 0 and localy != -1):
                     self.world.add_block(previous, current_block)
                     self.item_list.remove_current_block()
@@ -551,7 +551,7 @@ class GameController(Controller):
         self.crack_batch.draw()
         glDisable(GL_BLEND)
         self.draw_focused_block()
-        for ply in self.player_ids.itervalues():
+        for ply in self.player_ids.values():
             ply.model.draw()
         self.set_2d()
         if G.HUD_ENABLED:
@@ -574,7 +574,7 @@ class GameController(Controller):
             if crack_level >= CRACK_LEVELS:
                 return
             texture_data = crack_textures.texture_data[crack_level]
-            count = len(texture_data) / 2
+            count = int(len(texture_data) / 2)
             if self.crack:
                 self.crack.delete()
             self.crack = self.crack_batch.add(count, GL_QUADS, crack_textures.group,
@@ -701,7 +701,7 @@ class GameController(Controller):
         ysize = 28
         pbatch = pyglet.graphics.Batch()
         pgroup = pyglet.graphics.OrderedGroup(1)
-        DESERT, PLAINS, MOUNTAINS, SNOW, FOREST = range(5)
+        DESERT, PLAINS, MOUNTAINS, SNOW, FOREST = list(range(5))
         letters = ["D","P","M","S","F"]
 
         #  temp background pic...

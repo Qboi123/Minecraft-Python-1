@@ -1,12 +1,16 @@
 # Imports, sorted alphabetically.
 
 # Python packages
-import cPickle as pickle
+import pickle as pickle
 import os
 import random
 import struct
 import time
 import sqlite3
+
+from advUtils.network import PackageEncoder
+
+from blocks import air_block
 
 # Third-party packages
 # Nothing for now...
@@ -32,16 +36,23 @@ structvecBB = struct.Struct("hhhBB")
 
 null2 = struct.pack("xx") #Two \0's
 null1024 = null2*512      #1024 \0's
-air = G.BLOCKS_DIR[(0,0)]
+print(G.BLOCKS_DIR)
+print(type(list(G.BLOCKS_DIR.keys())[0]))
+print(BlockID(0, 0) in G.BLOCKS_DIR.keys())
+print(air_block in G.BLOCKS_DIR.values())
+# print(list(G.BLOCKS_DIR.values()).index(air_block))
+# print(list(G.BLOCKS_DIR.keys())[list(G.BLOCKS_DIR.values()).index(air_block)])
+# print(type(list(G.BLOCKS_DIR.keys())[list(G.BLOCKS_DIR.values()).index(air_block)]))
+air = G.BLOCKS_DIR[BlockID(0, 0)]
 
 def sector_to_filename(secpos):
     x,y,z = secpos
-    return "%i.%i.%i.pyr" % (x/4, y/4, z/4)
+    return "%i.%i.%i.pyr" % (int(x/4), int(y/4), int(z/4))
 def region_to_filename(region):
     return "%i.%i.%i.pyr" % region
 def sector_to_region(secpos):
     x,y,z = secpos
-    return (x/4, y/4, z/4)
+    return (int(x/4), int(y/4), int(z/4))
 def sector_to_offset(secpos):
     x,y,z = secpos
     return ((x % 4)*16 + (y % 4)*4 + (z % 4)) * 1024
@@ -65,10 +76,10 @@ def connect_db(world=None):
 
 def save_sector_to_string(blocks, secpos):
     cx, cy, cz = sector_to_blockpos(secpos)
-    fstr = ""
-    for x in xrange(cx, cx+8):
-        for y in xrange(cy, cy+8):
-            for z in xrange(cz, cz+8):
+    fstr = b""
+    for x in range(cx, cx+8):
+        for y in range(cy, cy+8):
+            for z in range(cz, cz+8):
                 blk = blocks.get((x,y,z), air).id
                 if blk is not air:
                     #if isinstance(blk, int): # When does this occur? Its expensive and I don't see it triggering
@@ -141,16 +152,16 @@ def load_region(world, world_name=None, region=None, sector=None):
     rx,ry,rz = rx*32, ry*32, rz*32
     with open(os.path.join(G.game_dir, world_name, region_to_filename(region)), "rb") as f:
         #Load every chunk in this region (4x4x4)
-        for cx in xrange(rx, rx+32, 8):
-            for cy in xrange(ry, ry+32, 8):
-                for cz in xrange(rz, rz+32, 8):
+        for cx in range(rx, rx+32, 8):
+            for cy in range(ry, ry+32, 8):
+                for cz in range(rz, rz+32, 8):
                     #Now load every block in this chunk (8x8x8)
                     fstr = f.read(1024)
                     if fstr != null1024:
                         fpos = 0
-                        for x in xrange(cx, cx+8):
-                            for y in xrange(cy, cy+8):
-                                for z in xrange(cz, cz+8):
+                        for x in range(cx, cx+8):
+                            for y in range(cy, cy+8):
+                                for z in range(cz, cz+8):
                                     read = fstr[fpos:fpos+2]
                                     fpos += 2
                                     if read != null2:
@@ -168,18 +179,21 @@ def load_region(world, world_name=None, region=None, sector=None):
                                                     blocks[position] = type(main_blk)()
                                                     blocks[position].set_metadata(full_id[-1])
                                             except KeyError as e:
-                                                print "load_region: Invalid Block", e
+                                                print("load_region: Invalid Block", e)
                                         sectors[(x/SECTOR_SIZE, y/SECTOR_SIZE, z/SECTOR_SIZE)].append(position)
 
 def load_player(player, world):
     db = connect_db(world)
     cur = db.cursor()
-    cur.execute("select * from players where name='%s'" % player.username)
+    print(player.username)
+    cur.execute("select * from players where name='%s'" % player.username.decode())
     data = cur.fetchone()
     if data is None:    # no such entry, set initial value
         player.position = None
         player.momentum = (0, 0, 0)
-        player.inventory = ''.join((struct.pack("HBB", 0, 0, 0)) * 40)
+
+        print("IMPORTANT0002:", 0, 0)
+        player.inventory = {"inventory": [(0, 0, 0)]  * 27, "quickSlots": [(0, 0, 0)] * 9, "armor": [(0, 0, 0)] * 4}  # ''.join((struct.pack("HBB", 0, 0, 0)) * 40)
     else:
         player.position = list(data[i] for i in range(2, 5))
         player.momentum = list(data[i] for i in range(5, 8))
@@ -199,13 +213,13 @@ def open_world(gamecontroller, game_dir, world=None):
         if isinstance(loaded_save[3], str):
             G.SEED = loaded_save[3]
             random.seed(G.SEED)
-            print('Loaded seed from save: ' + G.SEED)
+            print(('Loaded seed from save: ' + G.SEED))
     elif loaded_save[0] == 3: #Version 3
         if isinstance(loaded_save[1], Player): gamecontroller.player = loaded_save[1]
         if isinstance(loaded_save[2], float): gamecontroller.time_of_day = loaded_save[2]
-        G.SEED = str(long(time.time() * 256))
+        G.SEED = str(int(time.time() * 256))
         random.seed(G.SEED)
-        print('No seed in save, generated random seed: ' + G.SEED)
+        print(('No seed in save, generated random seed: ' + G.SEED))
 
     #blocks and sectors (window.world and window.world.sectors)
     #Are loaded on the fly

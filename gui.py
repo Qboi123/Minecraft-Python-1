@@ -63,7 +63,7 @@ class Rectangle(object):
 
     @property
     def center(self):
-        return self.x + self.width / 2, self.y + self.height / 2
+        return self.x + int(self.width / 2), self.y + int(self.height / 2)
 
     @property
     def min(self):
@@ -312,8 +312,8 @@ class ItemSelector(AbstractInventory):
 
         image = G.texture_pack_list.selected_texture_pack.load_texture(['gui', 'gui.png'])
         image_scale = image.height / 256
-        x_size = 182 * image_scale
-        y_size = 22 * image_scale
+        x_size = int(182 * image_scale)
+        y_size = int(22 * image_scale)
         self.frame = image_sprite(image, self.batch, 0, y=image.height - y_size, height=y_size, x=0, width=x_size)
         self.frame.scale = (1.0 / image_scale) * 2
         self.frame.x = (self.parent.window.width - self.frame.width) / 2
@@ -321,10 +321,10 @@ class ItemSelector(AbstractInventory):
         heart_image = load_image('resources', 'gui', 'heart.png')
         frame_size = image.height / 2
 
-        x_size = 24 * image_scale
-        y_size = 22 * image_scale
+        x_size = int(24 * image_scale)
+        y_size = int(22 * image_scale)
 
-        self.active = image_sprite(image, self.batch, 0, y=(image.height - (y_size + (22 * image_scale))), height=y_size, x=0, width=x_size)
+        self.active = image_sprite(image, self.batch, 0, y=(image.height - (y_size + int(22 * image_scale))), height=y_size, x=0, width=x_size)
         self.active.scale = (1.0 / image_scale) * 2
         self.slots = []
         
@@ -561,8 +561,8 @@ class InventorySelector(AbstractInventory):
     def change_image(self):
         image = G.texture_pack_list.selected_texture_pack.load_texture(['gui', 'inventory.png' if self.mode == 0 else 'crafting.png' if self.mode == 1 else 'furnace.png'])
         image_scale = image.height / 256
-        x_size = 176 * image_scale
-        y_size = 166 * image_scale
+        x_size = int(176 * image_scale)
+        y_size = int(166 * image_scale)
         self.frame = image_sprite(image, self.batch[self.mode], 0, y=image.height - y_size, height=y_size, x=0, width=x_size)
         self.frame.scale = (1.0 / image_scale) * 2
         self.frame.x = (self.parent.window.width - self.frame.width) / 2
@@ -805,7 +805,7 @@ class InventorySelector(AbstractInventory):
 def __run_iterator_fix(self, index):
     while index >= self.end and index > self.start:
         # condition has special case for 0-length run (fixes issue 471)
-        self.start, self.end, self.value = self.next()
+        self.start, self.end, self.value = next(self)
     return self.value
 from pyglet.text.runlist import RunIterator
 RunIterator.__getitem__ = __run_iterator_fix
@@ -958,7 +958,7 @@ class TextWidget(Control):
                                    self.width + self.padding, self.height + self.padding)
         # And reposition the text layout
         self.layout.x = self.x + self.padding
-        self.layout.y = (self.rectangle.y + (self.rectangle.height/2) - (self.height/2))
+        self.layout.y = (self.rectangle.y + int(self.rectangle.height/2) - int(self.height/2))
         self.layout.width = self.rectangle.width - self.padding
         self.layout.height = self.rectangle.height - self.padding
         if self.vertex_list:
@@ -1172,9 +1172,9 @@ frame_image = load_image('resources', 'textures', 'frame.png')
 def init_button_image():
     gui_image = G.texture_pack_list.selected_texture_pack.load_texture(['gui', 'gui.png'])
     image_scale = gui_image.height / 256
-    x_size = 200 * image_scale
-    y_offset = 66 * image_scale
-    y_size = 20 * image_scale
+    x_size = int(200 * image_scale)
+    y_offset = int(66 * image_scale)
+    y_size = int(20 * image_scale)
     batch = pyglet.graphics.Batch()
     button_disabled = image_sprite(gui_image, batch, 0, y=gui_image.height - y_offset, height=y_size, x=0, width=x_size)
 
