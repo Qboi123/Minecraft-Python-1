@@ -87,8 +87,8 @@ class PacketReceiver(Thread):
     def dequeue_packet(self):
         with self.lock:
             packetid, packet = self.world.sector_packets.popleft()
-        print(f"CLIENTPACKET_ID: ", packetid) if packetid != 1 else None
-        print(f"CLIENTPACKET_PAK:", packet) if packetid != 1 else None
+        # print(f"CLIENTPACKET_ID: ", packetid) if packetid != 1 else None
+        # print(f"CLIENTPACKET_PAK:", packet) if packetid != 1 else None
         if packetid == 1:  # Entire Sector
             blocks, sectors = self.world, self.world.sectors
             # secpos = struct.unpack("iii", packet[:12])
@@ -96,34 +96,33 @@ class PacketReceiver(Thread):
             # print(packet)
             sector = sectors[secpos]
             cx, cy, cz = sector_to_blockpos(secpos)
-            fpos = 12
+            fpos = 0  # 12
             exposed_pos = 0  # fpos + 1024
             for x in range(cx, cx + 8):
                 for y in range(cy, cy + 8):
                     for z in range(cz, cz + 8):
-                        read = packet["sectorData"][fpos:fpos + 2]  # .encode("ascii")
+                        sector_data = packet["sectorData"][fpos:fpos + 2]  # .encode("ascii")
                         # print(read)
                         fpos += 2
-                        if read != b"":
-                            unpacked = structuchar2.unpack(read)
-                            # unpacked = read
-                            # print("UNPACKED:", unpacked)
-                            if read != null2 and unpacked in BLOCKS_DIR:
-                                position = x, y, z
-                                try:
-                                    blocks[position] = BLOCKS_DIR[unpacked]
-                                    if blocks[position].sub_id_as_metadata:
-                                        blocks[position] = type(BLOCKS_DIR[unpacked])()
-                                        blocks[position].set_metadata(0)
-                                except KeyError:
-                                    main_blk = BLOCKS_DIR[(unpacked[0], 0)]
-                                    if main_blk.sub_id_as_metadata:  # sub id is metadata
-                                        blocks[position] = type(main_blk)()
-                                        blocks[position].set_metadata(unpacked[-1])
-                                sector.append(position)
-                                if packet["exposedSector"][exposed_pos] is "1":
-                                    blocks.show_block(position)
-                            exposed_pos += 1
+                        unpacked = structuchar2.unpack(sector_data)
+                        # unpacked = read
+                        # print("UNPACKED:", unpacked)
+                        if sector_data != null2 and unpacked in BLOCKS_DIR:
+                            position = x, y, z
+                            try:
+                                blocks[position] = BLOCKS_DIR[unpacked]
+                                if blocks[position].sub_id_as_metadata:
+                                    blocks[position] = type(BLOCKS_DIR[unpacked])()
+                                    blocks[position].set_metadata(0)
+                            except KeyError:
+                                main_blk = BLOCKS_DIR[(unpacked[0], 0)]
+                                if main_blk.sub_id_as_metadata:  # sub id is metadata
+                                    blocks[position] = type(main_blk)()
+                                    blocks[position].set_metadata(unpacked[-1])
+                            sector.append(position)
+                            if packet["exposedSector"][exposed_pos] is "1":
+                                blocks.show_block(position)
+                        exposed_pos += 1
             if secpos in self.world.sector_queue:
                 del self.world.sector_queue[secpos]  # Delete any hide sector orders
         elif packetid == 2:  # Blank Sector

@@ -222,10 +222,10 @@ class World(dict):
             self.sectors[sector] = [] #Initialize it so we don't keep requesting it
             self.packetreceiver.request_sector(sector)
 
-    #Clientside, show a sector we've downloaded
+    # Clientside, show a sector we've downloaded
     def _show_sector(self, sector):
         for position in self.sectors[sector]:
-            if position not in self.shown and self.is_exposed(position):
+            if position not in self.shown and self.is_exposed(position) and position in self:
                 self.show_block(position)
 
     def _hide_sector(self, sector):
@@ -255,6 +255,62 @@ class World(dict):
         #Queue the sectors to be shown, instead of rendering them in real time
         for sector in (after_set - before_set):
             self.enqueue_sector(True, sector)
+        self.before_set = after_set
+
+
+    def show_sector(self, sector):
+        """ Ensure all blocks2 in the given sector that should be shown are
+        drawn to the canvas.
+
+        """
+        # print(sector)
+        # print(self._sectors)
+        positions = self.sectors.get(sector, [])
+        if len(positions) > 0:
+            for position in self.sectors.get(sector, []):
+                if position not in self.shown and self.is_exposed(position):
+                    self.show_block(position, False)
+        else:
+            self.packetreceiver.request_sector(sector)
+            # self.show_sector(sector)
+
+
+    def hide_sector(self, sector):
+        """ Ensure all blocks2 in the given sector that should be hidden are
+        removed from the canvas.
+        """
+        # for position in self.sectors.get(sector, []):
+        #     if position in self.shown:
+        #         self.hide_block(position, False)
+        pass
+
+    def change_sectors(self, after):
+        """ Move from sector `before` to sector `after`. A sector is a
+        contiguous x, y sub-region of world. Sectors are used to speed up
+        world rendering.
+
+        """
+        before_set = self.before_set
+        after_set = set()
+        x, y, z = after
+        pad = G.VISIBLE_SECTORS_RADIUS
+        for distance in range(0, pad + 1):
+            for dx in range(-distance, distance + 1):
+                for dz in range(-distance, distance + 1):
+                    if abs(dx) != distance and abs(dz) != distance:
+                        continue
+                    for dy in range(-4, 4):
+                        if dx ** 2 + dy ** 2 + dz ** 2 > (pad + 1) ** 2:
+                            continue
+                        after_set.add((x + dx, y + dy, z + dz))
+        show = after_set - before_set
+        hide = before_set - after_set
+        for sector in show:
+            # print("SHOW:", sector)
+            self.show_sector(sector)
+        for sector in hide:
+            # print("HIDE:", sector)
+            self.hide_sector(sector)
         self.before_set = after_set
 
     def enqueue_sector(self, state, sector): #State=True to show, False to hide

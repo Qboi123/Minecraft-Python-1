@@ -309,6 +309,7 @@ class TerrainGeneratorSimple(TerrainGeneratorBase):
         #self.nether = ((nether_block,) * 80 + (soulsand_block,) * 15 + (netherore_block,) * 5 + (air_block,) * 10)
 
         self.weights = [self.PERSISTENCE ** (-self.H * n) for n in range(self.OCTAVES)]
+
     def _clamp(self, a):
         if a > 1:
             return 0.9999 #So int rounds down properly and keeps it within the right sector
@@ -316,6 +317,7 @@ class TerrainGeneratorSimple(TerrainGeneratorBase):
             return 0
         else:
             return a
+
     def get_height(self,x,z):
         """ Given block coordinates, returns a block coordinate height """
         x *= self.zoom_level

@@ -111,7 +111,7 @@ class Player(Entity):
             self.dy = 0
             self.flying = not self.flying
 
-    def get_motion_vector(self, multiplier=1.5):
+    def get_motion_vector(self, multiplier=1):
         if any(self.strafe):
             x, y = self.rotation
             y_r = radians(y)

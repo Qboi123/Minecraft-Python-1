@@ -514,7 +514,7 @@ class GameController(Controller):
             self.label.y = height - 10
         self.text_input.resize(x=0, y=0, width=self.window.width)
         self.chat_box.resize(x=0, y=self.text_input.y + self.text_input.height + 50,
-                             width=self.window.width / 2, height=min(300, self.window.height/3))
+                             width=int(self.window.width / 2), height=min(300, int(self.window.height/3)))
         #self.debug_text.resize(0, self.window.height - 300,
         #                           500, 300)
 

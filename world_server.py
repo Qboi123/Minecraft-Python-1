@@ -112,12 +112,19 @@ class WorldServer(dict):
             self.check_neighbors(position)
 
     def is_exposed(self, position):
-        # x, y, z = position
+        x, y, z = position
         # for fx,fy,fz in FACES:
         #     other_position = (fx+x, fy+y, fz+z)
         #     if other_position not in self or self[other_position].transparent:
         #         return True
+        # return False
+
+        x, y, z = position
+        for dx, dy, dz in FACES:
+            if (x + dx, y + dy, z + dz) not in self:
+                return True
         return False
+
 
     def get_exposed_sector_cached(self, sector):
         """
@@ -126,7 +133,7 @@ class WorldServer(dict):
         if sector in self.exposed_cache:
             return self.exposed_cache[sector]
         cx,cy,cz = sector_to_blockpos(sector)
-        #Most ridiculous list comprehension ever, but this is 25% faster than using appends
+        # Most ridiculous list comprehension ever, but this is 25% faster than using appends
         self.exposed_cache[sector] = "".join([(x,y,z) in self and self.is_exposed((x,y,z)) and "1" or "0"
             for x in range(cx, cx+8) for y in range(cy, cy+8) for z in range(cz, cz+8)])
         return self.exposed_cache[sector]
@@ -135,7 +142,9 @@ class WorldServer(dict):
         """ Returns a 512 length string of 0's and 1's if blocks are exposed """
         cx,cy,cz = sector_to_blockpos(sector)
         #Most ridiculous list comprehension ever, but this is 25% faster than using appends
-        return "".join([(x,y,z) in self and self.is_exposed((x,y,z)) and "1" or "0"
+        # return "".join([(x,y,z) in self and self.is_exposed((x,y,z)) and "1" or "0"
+        #                 for x in range(cx, cx+8) for y in range(cy, cy+8) for z in range(cz, cz+8)])
+        return "".join([str(int(((x, y, z) in self) and (self.is_exposed((x,y,z)))))
                         for x in range(cx, cx+8) for y in range(cy, cy+8) for z in range(cz, cz+8)])
 
     def neighbors_iterator(self, position, relative_neighbors_positions=FACES):
@@ -211,11 +220,11 @@ class WorldServer(dict):
                     for secz in ziter:
                         self.terraingen.generate_sector((secx,secy,secz))
             #Generate the requested sector immediately, so the following show_block's work
-            #self.terraingen.generate_sector(sector)
+            self.terraingen.generate_sector(sector)
 
     def hide_sector(self, sector):
         #TODO: remove from memory; save
-        #for position in self.sectors.get(sector, ()):
+        # for position in self.sectors.get(sector, ()):
         #    if position in self.shown:
         #        self.hide_block(position)
         pass

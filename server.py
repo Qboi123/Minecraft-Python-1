@@ -60,7 +60,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # self.request.sendall(py_000002 + packet)
         if not hasattr(self, "packageSystem"):
             self.packageSystem = PackageSystem(self.request)
-        print("SENDPACKET_SERVER:", packet) if packet["packetType"] != 1 and packet["packetType"] != 2 else None
+        # print("SENDPACKET_SERVER:", packet) if packet["packetType"] != 1 and packet["packetType"] != 2 else None
         # if packet["packetType"] == 6:
         #     exit(0)
         self.packageSystem: PackageSystem
@@ -131,11 +131,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         package_system = PackageSystem(self.request)
         while 1:
             # byte = self.request.recv(1)
-            data = package_system.recv()
+            try:
+                data = package_system.recv()
+            except ValueError:
+                return
             # print("Server recieved packet: %s" % data)
             packettype = data["packetType"]
             packet = data["packet"]
-            print(f"SERVERPACKET:", data) if packettype != 1 else None
+            # print(f"SERVERPACKET:", data) if packettype != 1 else None
             # if not byte: return  # The client has disconnected intentionally
 
             # packettype = struct.unpack("B", byte)[0]  # Client Packet Type
@@ -145,7 +148,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
                 # print("SECTORCHANGE_CURRENT:", sector)
                 # print("SECTORCHANGE_ALL:", world.sectors)
-                print("SECTORIZE_NEW:", sector in world.sectors)
+                # print("SECTORIZE_NEW:", sector in world.sectors)
 
                 if sector not in world.sectors:
                     with world.server_lock:
